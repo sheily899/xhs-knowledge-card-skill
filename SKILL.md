@@ -152,5 +152,9 @@ When an action would change the meaning of the copy or exceed the supplied asset
 ## Project resources
 
 - Detailed usage, boundaries, and validation checklist: [README.md](README.md)
+- Content chunking and confirmation rules: [references/content-structuring.md](references/content-structuring.md)
+- Module selection and editing rules: [references/module-guide.md](references/module-guide.md)
+- Visual system and layout baseline: [references/visual-system.md](references/visual-system.md)
+- Browser editing and export limits: [references/editing-and-export.md](references/editing-and-export.md)
 - Editable page 02 prototype: [outputs/skill-page02-prototype/index.html](outputs/skill-page02-prototype/index.html)
 - Editable page 03 prototype: [outputs/skill-page03-prototype/index.html](outputs/skill-page03-prototype/index.html)
