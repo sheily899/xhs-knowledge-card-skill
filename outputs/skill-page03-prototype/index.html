@@ -1,0 +1,856 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Skill / 03 — 为什么需要 Skill？</title>
+  <style>
+    :root {
+      --ink: #152936;
+      --muted: #62747b;
+      --accent: #35a8be;
+      --accent-dark: #16869e;
+      --wash: #eef8f9;
+      --rule: #b9e0e5;
+      --paper: #ffffff;
+      --serif: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong", serif;
+      --mono: "IBM Plex Mono", "Cascadia Mono", Consolas, monospace;
+      --title-size: 82px;
+      --body-size: 30px;
+      --meta-size: 20px;
+      --body-leading: 1.62;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      color: var(--ink);
+      background: #e7ebeb;
+      font-family: var(--serif);
+    }
+
+    .editor-shell {
+      min-height: 100vh;
+      padding: 28px;
+      display: grid;
+      grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+      gap: 28px;
+      align-items: start;
+    }
+
+    .controls {
+      position: sticky;
+      top: 28px;
+      padding: 20px;
+      background: #f8fbfb;
+      border: 1px solid #d6e1e2;
+      color: var(--ink);
+      font-family: var(--serif);
+    }
+    .controls h1 {
+      margin: 0 0 8px;
+      font-size: 22px;
+      line-height: 1.25;
+      font-weight: 500;
+    }
+    .control-group {
+      border-top: 1px solid #d6e1e2;
+      padding-top: 14px;
+      margin-top: 14px;
+    }
+    .control-label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: .06em;
+    }
+    .control-row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .module-actions { margin-top: 14px; }
+    .module-type-select {
+      width: 100%;
+      border: 1px solid var(--accent);
+      background: #fff;
+      color: var(--ink);
+      padding: 8px 10px;
+      font: 500 14px/1.2 var(--serif);
+    }
+    .selected-module {
+      margin-bottom: 8px;
+      color: var(--accent-dark);
+      font-size: 14px;
+    }
+    .file-button {
+      display: inline-block;
+      border: 1px solid var(--accent);
+      background: #fff;
+      color: var(--accent-dark);
+      padding: 8px 10px;
+      font: 500 14px/1.2 var(--serif);
+      cursor: pointer;
+    }
+    .file-button:hover, .file-button:focus-within { background: var(--wash); }
+    .range-control {
+      display: grid;
+      grid-template-columns: 70px minmax(0, 1fr) 42px;
+      gap: 8px;
+      align-items: center;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .range-control input { width: 100%; accent-color: var(--accent); }
+    .range-value { color: var(--accent-dark); text-align: right; }
+    button {
+      appearance: none;
+      border: 1px solid var(--accent);
+      background: #fff;
+      color: var(--accent-dark);
+      padding: 8px 10px;
+      font: 500 14px/1.2 var(--serif);
+      cursor: pointer;
+    }
+    button:hover, button:focus-visible { background: var(--wash); outline: 2px solid transparent; }
+    button:disabled { opacity: .48; cursor: not-allowed; background: #f3f6f6; }
+    .status {
+      min-height: 60px;
+      padding: 10px;
+      background: var(--wash);
+      border-left: 3px solid var(--accent);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .status.warn { border-left-color: #c9872b; background: #fff8ed; }
+    .status.fail { border-left-color: #bd4e52; background: #fff1f1; }
+    .status.ok { border-left-color: #4b9c77; background: #f0faf5; }
+
+    .stage {
+      min-width: 0;
+      display: grid;
+      place-items: start center;
+    }
+    .poster-frame {
+      width: min(100%, 620px);
+      aspect-ratio: 3 / 4;
+      position: relative;
+    }
+    .poster {
+      width: 1080px;
+      height: 1440px;
+      transform-origin: top left;
+      transform: scale(var(--scale, .5));
+      padding: 84px 88px 68px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      overflow: hidden;
+      background: var(--paper);
+      color: var(--ink);
+    }
+    .poster::after {
+      content: "";
+      position: absolute;
+      left: 88px;
+      right: 88px;
+      bottom: 34px;
+      border-top: 1px solid var(--rule);
+    }
+    .topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: var(--meta-size);
+      letter-spacing: .08em;
+    }
+    .page-no { color: var(--accent); }
+    .title {
+      margin: 26px 0 34px;
+      max-width: 820px;
+      font-size: var(--title-size);
+      line-height: 1.12;
+      letter-spacing: .015em;
+      font-weight: 500;
+    }
+    .accent { color: var(--accent); }
+    [contenteditable="true"] { outline: none; }
+    [contenteditable="true"]:focus { box-shadow: 0 0 0 3px rgba(53,168,190,.16); }
+    .module { position: relative; }
+    .module.is-selected { outline: 3px dashed rgba(53,168,190,.55); outline-offset: 8px; }
+    .module-flow { display: block; }
+
+    .scene {
+      min-height: 280px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: 24px;
+      align-items: center;
+      padding: 34px 34px 32px 38px;
+      background: var(--wash);
+      border-left: 5px solid var(--accent);
+    }
+    .scene-label {
+      margin-bottom: 14px;
+      color: var(--accent-dark);
+      font-family: var(--mono);
+      font-size: var(--meta-size);
+      letter-spacing: .06em;
+    }
+    .scene-copy {
+      margin: 0;
+      font-size: var(--body-size);
+      line-height: var(--body-leading);
+    }
+    .ip-wrap {
+      display: grid;
+      place-items: center;
+      min-height: 220px;
+    }
+    .ip {
+      display: block;
+      width: var(--ip-size, 300px);
+      max-height: 270px;
+      object-fit: contain;
+      mix-blend-mode: multiply;
+      cursor: grab;
+      touch-action: none;
+      transform: translate(var(--ip-offset-x, 0px), var(--ip-offset-y, 0px));
+    }
+    .ip.is-dragging { cursor: grabbing; }
+    .problems {
+      margin-top: 34px;
+      display: grid;
+      gap: 14px;
+    }
+    .problem {
+      display: grid;
+      grid-template-columns: 64px 250px minmax(0, 1fr);
+      gap: 20px;
+      align-items: baseline;
+      padding: 22px 20px 22px 0;
+      border-top: 1px solid var(--rule);
+    }
+    .problem:last-child { border-bottom: 1px solid var(--rule); }
+    .number {
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 28px;
+      text-align: center;
+    }
+    .problem-title {
+      color: var(--accent-dark);
+      font-size: 31px;
+      line-height: 1.3;
+      font-weight: 600;
+    }
+    .problem-body {
+      font-size: var(--body-size);
+      line-height: 1.55;
+    }
+    .closing {
+      margin-top: 32px;
+      padding: 24px 30px 25px 34px;
+      border-left: 5px solid var(--accent);
+      background: var(--wash);
+      font-size: 29px;
+      line-height: 1.58;
+    }
+    .custom-module {
+      margin-top: 24px;
+      border-left: 5px solid var(--accent);
+    }
+    .custom-text {
+      padding: 0;
+      border-left: 0;
+      background: transparent;
+      font-size: 29px;
+      line-height: 1.58;
+      min-height: 92px;
+    }
+    .custom-highlight {
+      padding: 26px 32px 28px 34px;
+      background: var(--wash);
+      font-size: 35px;
+      line-height: 1.45;
+      font-weight: 600;
+    }
+    .custom-list {
+      padding: 22px 30px 24px 34px;
+      background: #fbfefe;
+      border-top: 2px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+    }
+    .custom-list-title {
+      margin-bottom: 12px;
+      color: var(--accent-dark);
+      font-size: 31px;
+      line-height: 1.35;
+      font-weight: 600;
+    }
+    .custom-list-items {
+      margin: 0;
+      padding-left: 34px;
+      font-size: 29px;
+      line-height: 1.55;
+    }
+    .custom-list-items li { padding-left: 8px; }
+    .custom-grid4 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      border-left: 0;
+    }
+    .custom-grid-cell {
+      min-height: 120px;
+      padding: 22px 22px 24px;
+      border-top: 2px solid var(--rule);
+      background: var(--wash);
+      font-size: 27px;
+      line-height: 1.48;
+    }
+    .custom-editable:empty::before {
+      content: attr(data-placeholder);
+      color: var(--muted);
+    }
+    .footer {
+      position: absolute;
+      right: 88px;
+      bottom: 43px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 18px;
+      letter-spacing: .1em;
+    }
+
+    @media (max-width: 900px) {
+      .editor-shell { grid-template-columns: 1fr; padding: 16px; }
+      .controls { position: static; }
+      .stage { order: -1; }
+    }
+
+    .render-only .editor-shell {
+      display: block;
+      padding: 0;
+      min-height: 1440px;
+      background: #fff;
+    }
+    .render-only .controls { display: none; }
+    .render-only .stage { display: block; }
+    .render-only .poster-frame {
+      width: 1080px;
+      height: 1440px;
+    }
+    .render-only .poster { transform: none; }
+    .render-only .module.is-selected { outline: none; }
+    .render-only .editor-only { display: none !important; }
+  </style>
+</head>
+<body>
+  <main class="editor-shell">
+    <aside class="controls" aria-label="卡片编辑工具">
+      <h1>Skill / 03 原型</h1>
+
+      <div class="control-group">
+        <span class="control-label">EDIT</span>
+        <div class="control-row">
+          <button type="button" id="reset">恢复原文</button>
+          <button type="button" id="check">检查版式</button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <span class="control-label">MODULES</span>
+        <div class="selected-module" id="selectedModuleLabel">当前模块：场景</div>
+        <label class="control-label" for="moduleType">新模块形式</label>
+        <select id="moduleType" class="module-type-select">
+          <option value="text">纯文字（无格式）</option>
+          <option value="highlight">重点色块</option>
+          <option value="list">列表</option>
+          <option value="grid4">四宫格</option>
+        </select>
+        <div class="control-row module-actions">
+          <button type="button" id="addText">新增模块</button>
+          <button type="button" id="deleteModule">删除选中</button>
+        </div>
+        <div class="control-row module-actions">
+          <button type="button" id="moveUp">上移</button>
+          <button type="button" id="moveDown">下移</button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <span class="control-label">IMAGE</span>
+        <label class="file-button" for="imageInput">替换 IP 图片</label>
+        <input id="imageInput" class="editor-only" type="file" accept="image/*" hidden />
+        <div class="range-control">
+          <label for="ipSize">大小</label>
+          <input id="ipSize" type="range" min="180" max="360" value="300" />
+          <span class="range-value" id="ipSizeValue">300</span>
+        </div>
+        <div class="range-control">
+          <label for="ipOffset">上下</label>
+          <input id="ipOffset" type="range" min="-180" max="180" value="0" />
+          <span class="range-value" id="ipOffsetValue">0</span>
+        </div>
+        <button type="button" id="resetImagePosition" class="module-actions">恢复位置</button>
+      </div>
+
+      <div class="control-group">
+        <span class="control-label">EXPORT</span>
+        <div class="control-row">
+          <button type="button" id="exportSvg">导出 SVG</button>
+          <button type="button" id="exportPng">导出 PNG</button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <span class="control-label">STATUS</span>
+        <div id="status" class="status">等待检查：先看文字和版式是否舒服。</div>
+      </div>
+    </aside>
+
+    <section class="stage" aria-label="3:4 可编辑卡片">
+      <div class="poster-frame" id="posterFrame">
+        <article class="poster" id="poster" aria-label="第 03 页：为什么需要 Skill？">
+          <div class="topline">
+            <span>AI / SKILL</span>
+            <span class="page-no">03 / 05</span>
+          </div>
+
+          <h1 class="title" id="title" contenteditable="true">为什么需要 <span class="accent">Skill</span>？</h1>
+
+          <div id="moduleFlow" class="module-flow">
+          <section class="scene module" data-module data-module-id="scene" data-module-label="场景" aria-label="场景">
+            <div>
+              <p class="scene-copy" id="scene" contenteditable="true">比如每次做竞品分析，你都要重新交代：查哪些资料、怎样核实来源、按什么结构输出。做过一次，下次还是得从头说。</p>
+            </div>
+            <div class="ip-wrap">
+              <img id="ipImage" class="ip" src="assets/ip-confused-tangle.png" alt="抱着越缠越乱的线、表情困惑的 IP 形象" />
+            </div>
+          </section>
+
+          <section class="problems module" data-module data-module-id="problems" data-module-label="三个麻烦" aria-label="三个麻烦">
+            <article class="problem">
+              <div class="number">01</div>
+              <div class="problem-title" contenteditable="true">重复交代</div>
+              <div class="problem-body" contenteditable="true">相同的要求，每次任务都要再输入。</div>
+            </article>
+            <article class="problem">
+              <div class="number">02</div>
+              <div class="problem-title" contenteditable="true">注意力被稀释</div>
+              <div class="problem-body" contenteditable="true">要求越堆越长，关键步骤和约束更容易被淹没。</div>
+            </article>
+            <article class="problem">
+              <div class="number">03</div>
+              <div class="problem-title" contenteditable="true">难以维护</div>
+              <div class="problem-body" contenteditable="true">想改一个步骤，还得通读整段要求，检查它是否与旧规则冲突。</div>
+            </article>
+          </section>
+
+          <p class="closing module" id="closing" data-module data-module-id="closing" data-module-label="收束" contenteditable="true">把相对固定的步骤、参考资料和工具使用方式整理起来，需要时再调用。这就是 Skill 想解决的一类问题。</p>
+          </div>
+          <div class="footer">SKILL / 03</div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const poster = document.querySelector('#poster');
+    const frame = document.querySelector('#posterFrame');
+    const moduleFlow = document.querySelector('#moduleFlow');
+    const statusBox = document.querySelector('#status');
+    const selectedModuleLabel = document.querySelector('#selectedModuleLabel');
+    const imageInput = document.querySelector('#imageInput');
+    const ipImage = document.querySelector('#ipImage');
+    const ipSize = document.querySelector('#ipSize');
+    const ipSizeValue = document.querySelector('#ipSizeValue');
+    const ipOffset = document.querySelector('#ipOffset');
+    const ipOffsetValue = document.querySelector('#ipOffsetValue');
+    const resetImagePositionButton = document.querySelector('#resetImagePosition');
+    const deleteModuleButton = document.querySelector('#deleteModule');
+    let selectedModule = moduleFlow.querySelector('[data-module-id="scene"]');
+    let currentImageUrl = ipImage.src;
+    let imageDragState = null;
+    const original = {
+      titleHTML: '为什么需要 <span class="accent">Skill</span>？',
+      scene: '比如每次做竞品分析，你都要重新交代：查哪些资料、怎样核实来源、按什么结构输出。做过一次，下次还是得从头说。',
+      titles: ['重复交代', '注意力被稀释', '难以维护'],
+      bodies: ['相同的要求，每次任务都要再输入。', '要求越堆越长，关键步骤和约束更容易被淹没。', '想改一个步骤，还得通读整段要求，检查它是否与旧规则冲突。'],
+      closing: '把相对固定的步骤、参考资料和工具使用方式整理起来，需要时再调用。这就是 Skill 想解决的一类问题。',
+      image: 'assets/ip-confused-tangle.png',
+      ipSize: '300',
+      ipOffset: '0',
+      ipOffsetX: '0'
+    };
+
+    function fitPoster() {
+      const available = Math.min(frame.clientWidth, window.innerWidth - 32);
+      const scale = Math.min(available / 1080, 0.62);
+      poster.style.setProperty('--scale', scale.toFixed(4));
+      frame.style.height = `${1440 * scale}px`;
+    }
+    window.addEventListener('resize', fitPoster);
+    if (new URLSearchParams(window.location.search).get('render') === 'poster') {
+      document.body.classList.add('render-only');
+    } else {
+      fitPoster();
+    }
+
+    function setStatus(message, type = '') {
+      statusBox.className = `status ${type}`;
+      statusBox.textContent = message;
+    }
+
+    function plainText(selector) {
+      return document.querySelector(selector).innerText.replace(/\n+/g, '').trim();
+    }
+
+    function moduleLabel(module) {
+      return module?.dataset.moduleLabel || '未命名模块';
+    }
+
+    function updateModuleActions() {
+      const canDelete = moduleIsCustom(selectedModule);
+      deleteModuleButton.disabled = !canDelete;
+      deleteModuleButton.title = canDelete ? '删除当前新增模块' : '固定模块不可删除';
+      selectedModuleLabel.textContent = `当前模块：${moduleLabel(selectedModule)}`;
+    }
+
+    function selectModule(module) {
+      if (!module || !module.matches('[data-module]')) return;
+      document.querySelectorAll('[data-module].is-selected').forEach((el) => el.classList.remove('is-selected'));
+      selectedModule = module;
+      selectedModule.classList.add('is-selected');
+      updateModuleActions();
+    }
+
+    function moduleIsCustom(module) {
+      return module?.dataset.moduleSource === 'custom';
+    }
+
+    function makeEditable(className, placeholder) {
+      const field = document.createElement('div');
+      field.className = `custom-editable ${className}`.trim();
+      field.contentEditable = 'true';
+      field.dataset.placeholder = placeholder;
+      return field;
+    }
+
+    function configureCustomModule(module, type, seedText = '') {
+      const labels = {
+        text: '补充文字',
+        highlight: '重点色块',
+        list: '补充列表',
+        grid4: '补充四宫格'
+      };
+      module.className = `module custom-module custom-${type}`;
+      module.dataset.module = '';
+      module.dataset.moduleSource = 'custom';
+      module.dataset.moduleType = type;
+      module.dataset.moduleLabel = labels[type];
+      module.setAttribute('aria-label', labels[type]);
+      module.removeAttribute('contenteditable');
+      module.replaceChildren();
+
+      if (type === 'text') {
+        module.classList.add('custom-text');
+        module.contentEditable = 'true';
+        module.dataset.placeholder = '点击这里输入补充内容';
+        module.textContent = seedText;
+        return;
+      }
+
+      if (type === 'highlight') {
+        module.append(makeEditable('custom-highlight-copy', seedText || '点击这里输入需要强调的内容'));
+        return;
+      }
+
+      if (type === 'list') {
+        const title = makeEditable('custom-list-title', '列表标题（可选）');
+        const list = document.createElement('ul');
+        list.className = 'custom-list-items';
+        ['条目一', '条目二', '条目三'].forEach((placeholder, index) => {
+          const item = document.createElement('li');
+          const field = makeEditable('', index === 0 && seedText ? seedText : placeholder);
+          if (index === 0 && seedText) field.textContent = seedText;
+          item.append(field);
+          list.append(item);
+        });
+        module.append(title, list);
+        return;
+      }
+
+      if (type === 'grid4') {
+        ['重点一', '重点二', '重点三', '重点四'].forEach((placeholder, index) => {
+          const cell = makeEditable('custom-grid-cell', index === 0 && seedText ? seedText : placeholder);
+          if (index === 0 && seedText) cell.textContent = seedText;
+          module.append(cell);
+        });
+      }
+    }
+
+    function focusCustomModule(module) {
+      const editable = module.matches('[contenteditable="true"]')
+        ? module
+        : module.querySelector('.custom-editable');
+      editable?.focus();
+    }
+
+    function addModule(type = document.querySelector('#moduleType').value) {
+      const module = document.createElement('section');
+      module.dataset.moduleId = `custom-${Date.now()}`;
+      configureCustomModule(module, type);
+
+      const anchor = selectedModule && selectedModule.parentElement === moduleFlow
+        ? selectedModule
+        : moduleFlow.querySelector('[data-module-id="scene"]');
+      moduleFlow.insertBefore(module, anchor?.nextElementSibling || null);
+      selectModule(module);
+      focusCustomModule(module);
+      setStatus(`已新增${moduleLabel(module)}，请填写内容。`, 'ok');
+    }
+
+    function addTextModule() {
+      addModule(document.querySelector('#moduleType').value);
+    }
+
+    function moveSelectedModule(direction) {
+      if (!selectedModule || selectedModule.parentElement !== moduleFlow) {
+        setStatus('NEED_CONFIRM：请先点击一个模块。', 'warn');
+        return;
+      }
+      const sibling = direction < 0 ? selectedModule.previousElementSibling : selectedModule.nextElementSibling;
+      if (!sibling || !sibling.matches('[data-module]')) {
+        setStatus(direction < 0 ? '当前模块已经在最上方。' : '当前模块已经在最下方。', 'warn');
+        return;
+      }
+      if (direction < 0) moduleFlow.insertBefore(selectedModule, sibling);
+      else moduleFlow.insertBefore(sibling, selectedModule);
+      selectModule(selectedModule);
+      setStatus('模块位置已调整，后续内容已自动重新排布。', 'ok');
+    }
+
+    function deleteSelectedModule() {
+      if (!moduleIsCustom(selectedModule)) {
+        setStatus('当前选中的是固定模块，先新增模块或点击新增模块后再删除。', 'warn');
+        return;
+      }
+      if (!window.confirm('删除这个补充模块？')) return;
+      const previous = selectedModule.previousElementSibling;
+      selectedModule.remove();
+      selectModule(previous?.matches('[data-module]') ? previous : moduleFlow.querySelector('[data-module-id="scene"]'));
+      setStatus('补充模块已删除。', 'ok');
+    }
+
+    function applyImageControls() {
+      const currentX = Number.parseFloat(getComputedStyle(poster).getPropertyValue('--ip-offset-x')) || 0;
+      poster.style.setProperty('--ip-size', `${ipSize.value}px`);
+      poster.style.setProperty('--ip-offset-x', `${currentX}px`);
+      poster.style.setProperty('--ip-offset-y', `${ipOffset.value}px`);
+      ipSizeValue.textContent = ipSize.value;
+      ipOffsetValue.textContent = ipOffset.value;
+    }
+
+    function setImagePosition(x, y) {
+      const nextX = Math.max(-240, Math.min(240, Math.round(x)));
+      const nextY = Math.max(-180, Math.min(180, Math.round(y)));
+      poster.style.setProperty('--ip-offset-x', `${nextX}px`);
+      poster.style.setProperty('--ip-offset-y', `${nextY}px`);
+      ipOffset.value = String(nextY);
+      ipOffsetValue.textContent = String(nextY);
+    }
+
+    function resetImagePosition() {
+      setImagePosition(Number(original.ipOffsetX), Number(original.ipOffset));
+      setStatus('IP 图片位置已恢复。', 'ok');
+    }
+
+    function currentImagePosition() {
+      return {
+        x: Number.parseFloat(getComputedStyle(poster).getPropertyValue('--ip-offset-x')) || 0,
+        y: Number.parseFloat(getComputedStyle(poster).getPropertyValue('--ip-offset-y')) || 0
+      };
+    }
+
+    ipImage.addEventListener('pointerdown', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const position = currentImagePosition();
+      imageDragState = {
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        originX: position.x,
+        originY: position.y
+      };
+      ipImage.classList.add('is-dragging');
+      ipImage.setPointerCapture?.(event.pointerId);
+    });
+
+    ipImage.addEventListener('pointermove', (event) => {
+      if (!imageDragState || event.pointerId !== imageDragState.pointerId) return;
+      const posterRect = poster.getBoundingClientRect();
+      const scale = posterRect.width / 1080 || 1;
+      setImagePosition(
+        imageDragState.originX + (event.clientX - imageDragState.startX) / scale,
+        imageDragState.originY + (event.clientY - imageDragState.startY) / scale
+      );
+    });
+
+    function endImageDrag(event) {
+      if (!imageDragState || event.pointerId !== imageDragState.pointerId) return;
+      imageDragState = null;
+      ipImage.classList.remove('is-dragging');
+      setStatus('IP 图片位置已调整。', 'ok');
+    }
+
+    ipImage.addEventListener('pointerup', endImageDrag);
+    ipImage.addEventListener('pointercancel', endImageDrag);
+
+    function hasEmptyCustomModule() {
+      return [...document.querySelectorAll('.custom-module')].some((module) => {
+        const fields = [];
+        if (module.matches('[contenteditable="true"]')) fields.push(module);
+        fields.push(...module.querySelectorAll('[contenteditable="true"]'));
+        return !fields.some((field) => field.textContent.trim());
+      });
+    }
+
+    function checkLayout() {
+      const problems = [...document.querySelectorAll('.problem')];
+      const missing = [];
+      if (!plainText('#title')) missing.push('标题');
+      if (!plainText('#scene')) missing.push('场景');
+      if (!plainText('#closing')) missing.push('底部收束');
+      problems.forEach((row, index) => {
+        if (!row.querySelector('.problem-title').innerText.trim()) missing.push(`问题 ${index + 1} 标题`);
+        if (!row.querySelector('.problem-body').innerText.trim()) missing.push(`问题 ${index + 1} 解释`);
+      });
+
+      if (missing.length) {
+        setStatus(`NEED_CONFIRM：缺少 ${missing.join('、')}。原型不会自动补写。`, 'fail');
+        return false;
+      }
+
+      if (hasEmptyCustomModule()) {
+        setStatus('NEED_CONFIRM：有空白补充模块，请先填写内容或删除它。', 'fail');
+        return false;
+      }
+
+      if (poster.scrollHeight > poster.clientHeight + 2) {
+        const over = poster.scrollHeight - poster.clientHeight;
+        setStatus(`NEED_CONFIRM：内容溢出约 ${over}px。建议调整模块或拆页，不自动删字。`, 'warn');
+        return false;
+      }
+
+      const bodySize = parseFloat(getComputedStyle(document.querySelector('.scene-copy')).fontSize);
+      if (bodySize < 28) {
+        setStatus('NEED_CONFIRM：正文小于 28px，可能影响手机阅读。', 'warn');
+        return false;
+      }
+      setStatus('OK：文字完整，当前版式没有检测到溢出。', 'ok');
+      return true;
+    }
+
+    poster.addEventListener('click', (event) => {
+      const module = event.target.closest('[data-module]');
+      if (module) selectModule(module);
+    });
+
+    document.querySelector('#check').addEventListener('click', checkLayout);
+    document.querySelector('#addText').addEventListener('click', addTextModule);
+    document.querySelector('#moveUp').addEventListener('click', () => moveSelectedModule(-1));
+    document.querySelector('#moveDown').addEventListener('click', () => moveSelectedModule(1));
+    document.querySelector('#deleteModule').addEventListener('click', deleteSelectedModule);
+
+    document.querySelector('#reset').addEventListener('click', () => {
+      document.querySelector('#title').innerHTML = original.titleHTML;
+      document.querySelector('#scene').textContent = original.scene;
+      document.querySelectorAll('.problem-title').forEach((el, i) => el.textContent = original.titles[i]);
+      document.querySelectorAll('.problem-body').forEach((el, i) => el.textContent = original.bodies[i]);
+      document.querySelector('#closing').textContent = original.closing;
+      document.querySelectorAll('.custom-module').forEach((el) => el.remove());
+      ipImage.src = original.image;
+      currentImageUrl = original.image;
+      ipSize.value = original.ipSize;
+      ipOffset.value = original.ipOffset;
+      poster.style.setProperty('--ip-offset-x', `${original.ipOffsetX}px`);
+      applyImageControls();
+      selectModule(document.querySelector('[data-module-id="scene"]'));
+      setStatus('已恢复原文。', 'ok');
+    });
+
+    imageInput.addEventListener('change', (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const nextUrl = URL.createObjectURL(file);
+      if (currentImageUrl.startsWith('blob:')) URL.revokeObjectURL(currentImageUrl);
+      currentImageUrl = nextUrl;
+      ipImage.src = nextUrl;
+      setStatus(`已替换 IP 图片：${file.name}`, 'ok');
+    });
+
+    ipSize.addEventListener('input', applyImageControls);
+    ipOffset.addEventListener('input', applyImageControls);
+    resetImagePositionButton.addEventListener('click', resetImagePosition);
+    selectModule(selectedModule);
+    applyImageControls();
+
+    async function inlineImages(root) {
+      const images = [...root.querySelectorAll('img')];
+      await Promise.all(images.map(async (image) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = image.naturalWidth;
+        canvas.height = image.naturalHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(image, 0, 0);
+        image.setAttribute('src', canvas.toDataURL('image/png'));
+      }));
+    }
+
+    function svgDocument(markup) {
+      return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1080" height="1440" viewBox="0 0 1080 1440"><foreignObject width="1080" height="1440"><div xmlns="http://www.w3.org/1999/xhtml"><style>${document.querySelector('style').textContent}</style>${markup}</div></foreignObject></svg>`;
+    }
+
+    async function makeSvgUrl() {
+      const clone = poster.cloneNode(true);
+      clone.style.transform = 'none';
+      clone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+      clone.querySelectorAll('.editor-only').forEach(el => el.remove());
+      clone.querySelectorAll('.is-selected').forEach(el => el.classList.remove('is-selected'));
+      await inlineImages(clone);
+      const markup = clone.outerHTML;
+      const svg = svgDocument(markup);
+      return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+    }
+
+    function download(url, filename) {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+    }
+
+    document.querySelector('#exportSvg').addEventListener('click', async () => {
+      if (!checkLayout()) return;
+      download(await makeSvgUrl(), 'skill-page-03.svg');
+    });
+
+    document.querySelector('#exportPng').addEventListener('click', async () => {
+      if (!checkLayout()) return;
+      const image = new Image();
+      image.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1080;
+        canvas.height = 1440;
+        canvas.getContext('2d').drawImage(image, 0, 0);
+        download(canvas.toDataURL('image/png'), 'skill-page-03.png');
+      };
+      image.src = await makeSvgUrl();
+    });
+  </script>
+</body>
+</html>

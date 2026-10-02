@@ -1,0 +1,10 @@
+# 与小红书知识卡片 Skill 无关的工作内容
+$target/
+skill-manager/
+work/
+outputs/OpenNVR产品拆解报告.md
+
+# 本地运行产生的缓存
+**/__pycache__/
+*.pyc
+.DS_Store

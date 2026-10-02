@@ -1,0 +1,32 @@
+{
+  "canvas": { "width": 1080, "height": 1440, "ratio": "3:4" },
+  "style": {
+    "background": "#FFFFFF",
+    "ink": "#152936",
+    "accent": "#35A8BE",
+    "wash": "#EEF8F9",
+    "rule": "#B9E0E5"
+  },
+  "modules": [
+    { "type": "title", "content": "title", "position": "top-left" },
+    { "type": "intro", "content": "intro", "position": "flow" },
+    { "type": "definition-with-asset", "content": "definition", "asset": "ip-confused-tangle.png" },
+    { "type": "explain", "content": "explain", "position": "flow" },
+    { "type": "workflow", "content": "workflow", "position": "flow" },
+    { "type": "steps4", "content": "steps", "count": 4 },
+    { "type": "custom-text", "content": "user-added", "insertableAfter": "any-module" },
+    { "type": "custom-highlight", "content": "user-added", "insertableAfter": "any-module" },
+    { "type": "custom-list", "content": "user-added", "insertableAfter": "any-module" },
+    { "type": "custom-grid4", "content": "user-added", "insertableAfter": "any-module" }
+  ],
+  "editor": {
+    "moduleFlow": true,
+    "insertTextModule": true,
+    "moduleTypeOptions": ["text", "highlight", "list", "grid4"],
+    "moveModule": true,
+    "deleteOnlyUserAddedModules": true,
+    "replaceImage": true,
+    "imageControls": ["size", "vertical-offset", "drag-position", "reset-position"]
+  },
+  "overflowPolicy": "warn-and-ask; never delete or rewrite copy"
+}
